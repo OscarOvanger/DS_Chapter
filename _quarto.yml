@@ -1,0 +1,27 @@
+project:
+  type: default
+  output-dir: .
+
+execute:
+  enabled: false
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    number-sections: false
+    embed-resources: true
+    include-in-header:
+      - text: |
+          <style>
+          .plotly-panel { margin: 1.5rem 0; min-height: 1000px; overflow: hidden; }
+          .plotly-panel iframe { max-width: 100%; }
+          </style>
+    page-layout: article
+    smooth-scroll: true
+    code-fold: false
+    html-math-method: katex
+
+# Use the project virtualenv for Python + Jupyter execution.
+jupyter: python3

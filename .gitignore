@@ -1,0 +1,30 @@
+.venv/
+.tools/
+.quarto/
+
+# Local Quarto / notebook HTML (published copy lives in docs/)
+Downscaling_BS.html
+Downscaling_BS_files/
+Downscaling_BS.quarto_ipynb
+Downscaling_BS_interactive.html
+Downscaling_BS_interactive_files/
+
+# Plotly exports at repo root (copied into docs/ for Pages)
+figures/
+!docs/figures/
+
+# Data caches (too large for GitHub)
+data/*.nc
+data/era5_hist_chunks/
+~$*
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
