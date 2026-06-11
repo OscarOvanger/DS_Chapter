@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-06-03">
+<meta name="dcterms.date" content="2026-06-10">
 
 <title>Downscaling</title>
 <style>
@@ -3153,15 +3153,18 @@ window.Quarto = {
    
   <ul>
   <li><a href="#what-is-downscaling-and-why-do-we-care" id="toc-what-is-downscaling-and-why-do-we-care" class="nav-link active" data-scroll-target="#what-is-downscaling-and-why-do-we-care">What is downscaling and why do we care?</a></li>
-  <li><a href="#two-main-routes" id="toc-two-main-routes" class="nav-link" data-scroll-target="#two-main-routes">Two main routes</a></li>
-  <li><a href="#statistical" id="toc-statistical" class="nav-link" data-scroll-target="#statistical">Statistical</a>
+  <li><a href="#two-broad-routes" id="toc-two-broad-routes" class="nav-link" data-scroll-target="#two-broad-routes">Two broad routes</a></li>
+  <li><a href="#statistical-climate-downscaling" id="toc-statistical-climate-downscaling" class="nav-link" data-scroll-target="#statistical-climate-downscaling">Statistical climate downscaling</a></li>
+  <li><a href="#notation" id="toc-notation" class="nav-link" data-scroll-target="#notation">Notation</a></li>
+  <li><a href="#delta-change" id="toc-delta-change" class="nav-link" data-scroll-target="#delta-change">Delta Change</a></li>
+  <li><a href="#bias-corrected-spatial-disaggregation" id="toc-bias-corrected-spatial-disaggregation" class="nav-link" data-scroll-target="#bias-corrected-spatial-disaggregation">Bias-Corrected Spatial Disaggregation</a></li>
+  <li><a href="#sdsm" id="toc-sdsm" class="nav-link" data-scroll-target="#sdsm">SDSM</a>
   <ul class="collapse">
-  <li><a href="#notation-and-nomenclature" id="toc-notation-and-nomenclature" class="nav-link" data-scroll-target="#notation-and-nomenclature">Notation and nomenclature</a></li>
-  <li><a href="#delta-change-dc" id="toc-delta-change-dc" class="nav-link" data-scroll-target="#delta-change-dc">Delta change (DC)</a></li>
-  <li><a href="#bias-corrected-spatial-disaggregation-bcsd" id="toc-bias-corrected-spatial-disaggregation-bcsd" class="nav-link" data-scroll-target="#bias-corrected-spatial-disaggregation-bcsd">Bias-corrected spatial disaggregation (BCSD)</a></li>
+  <li><a href="#statistical-downscaling-model-a-local-regression-example" id="toc-statistical-downscaling-model-a-local-regression-example" class="nav-link" data-scroll-target="#statistical-downscaling-model-a-local-regression-example">Statistical DownScaling Model: a local regression example</a></li>
+  <li><a href="#model-equations" id="toc-model-equations" class="nav-link" data-scroll-target="#model-equations">Model equations</a></li>
+  <li><a href="#interactive-figures" id="toc-interactive-figures" class="nav-link" data-scroll-target="#interactive-figures">Interactive figures</a></li>
   </ul></li>
-  <li><a href="#dynamical" id="toc-dynamical" class="nav-link" data-scroll-target="#dynamical">Dynamical</a></li>
-  <li><a href="#ml-techniques" id="toc-ml-techniques" class="nav-link" data-scroll-target="#ml-techniques">ML techniques</a></li>
+  <li><a href="#dynamical-and-machine-learning-methods" id="toc-dynamical-and-machine-learning-methods" class="nav-link" data-scroll-target="#dynamical-and-machine-learning-methods">Dynamical and machine learning methods</a></li>
   </ul>
 </nav>
 </div>
@@ -3170,7 +3173,7 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Downscaling</h1>
-<p class="subtitle lead">Statistical downscaling — Austin / Travis County testbed</p>
+<p class="subtitle lead">Statistical climate downscaling — Austin / Travis County testbed</p>
 </div>
 
 
@@ -3181,7 +3184,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 3, 2026</p>
+      <p class="date">June 10, 2026</p>
     </div>
   </div>
   
@@ -3195,25 +3198,27 @@ window.Quarto = {
 
 <section id="what-is-downscaling-and-why-do-we-care" class="level2">
 <h2 class="anchored" data-anchor-id="what-is-downscaling-and-why-do-we-care">What is downscaling and why do we care?</h2>
-<p>The term <em>downscaling</em> in atmospheric science refers to the task of inferring a high-resolution target variable from low-resolution input variables. Traditionally this usually means spatial resolution, i.e., low to high spatial fidelity; however, it can also mean temporal resolution, for example in regards to nowcasting. In computer vision, the term <em>super-resolution</em> is used when we increase the number of pixels in a video or image, and going from low to high resolution is often called <em>upscaling</em>, which might confuse readers with computer science backgrounds. In atmospheric science this means the exact opposite: upscaling is decreasing the resolution, so you are forgiven if this sounds counterintuitive. The reason why it is called downscaling in atmospheric science is because it is traditionally used to extract local from global information.</p>
-<p>A climate projection (GCM), e.g., from CMIP6, is run globally, simulating every cell on Earth and projecting the forecast into the future. The complexities of running a numerical weather prediction model with all its forcings and coupled multi-scaled variables makes it computationally infeasible to run with high enough resolution to capture local weather phenomena. Downscaling is the attempt to resolve local weather by taking into account local topography, radar data, and station-level observations.</p>
-<p>So why do we care about downscaling? Having a high-resolution image is great, but unless it helps decision making or downstream tasks it is just an image. The reason we care is because a lot of dynamics like convective processes happen at a subgrid resolution and extremes are blurred out. Say the GCM tells you how much it rains on average within a 25×25 km grid for the next 6 hours: this does not tell you where the extreme precipitation will be, it does not tell you when the rainfall will be, and if the land has different soil types this will impact flooding completely differently. Let’s say there’s an urban area surrounded by forest, or there’s local topography—the impact on flooding is completely different based on what happens at the subgrid scale. The same goes for temperature, wind, humidity, etc.: extremes and locality are blurred. Since the GCM cannot resolve local effects, it will also be biased, and thus downscaling is important to resolve and understand these biases.</p>
+<p>In atmospheric science, <strong>downscaling</strong> refers to the task of inferring a high-resolution target variable from lower-resolution input variables. Most commonly, this refers to spatial resolution: moving from coarse global or regional model output to finer local fields. In some contexts, downscaling can also refer to temporal refinement, such as producing higher-frequency estimates from lower-frequency model output.</p>
+<p>This terminology can be slightly confusing for readers with a computer vision background. In computer vision, increasing the number of pixels in an image is often called <strong>super-resolution</strong> or <strong>upscaling</strong>. In atmospheric science, however, the term <strong>downscaling</strong> is used because the goal is to move from large-scale atmospheric information to smaller-scale local information.</p>
+<p>The need for downscaling arises because global climate and weather models cannot resolve all local processes. A global climate model, for example, simulates the atmosphere over the entire planet and may project future climate under different forcing scenarios. However, the computational cost of resolving the full Earth system means that these models are usually run at resolutions too coarse to capture many local phenomena. Fine-scale topography, land-surface heterogeneity, urban areas, coastlines, convective storms, and local precipitation extremes often occur below the grid scale of the model.</p>
+<p>This matters because many climate impacts are local. Suppose a global model estimates the average precipitation over a 25 km by 25 km grid cell during a six-hour period. That value may describe the large-scale state, but it does not tell us where within the grid cell the most intense rainfall occurred. It also does not tell us whether the rainfall fell over an urban area, a forest, a steep slope, or a flood-prone watershed. The same problem occurs for temperature, wind, humidity, and other variables: local extremes and spatial gradients are often smoothed out by the coarse grid.</p>
+<p>Downscaling is therefore important because high-resolution information is often needed for decision-making. A high-resolution climate field is not useful simply because it has more pixels; it is useful because it can support downstream tasks such as flood-risk modeling, heat-exposure analysis, agricultural planning, infrastructure design, and climate adaptation.</p>
 </section>
-<section id="two-main-routes" class="level2">
-<h2 class="anchored" data-anchor-id="two-main-routes">Two main routes</h2>
-<p>There are two main routes in downscaling: <strong>statistical</strong> and <strong>dynamical</strong>. They differ extremely in complexity. On the one hand, statistical downscaling is computationally and technically lightweight; on the other hand, dynamical downscaling involves running an NWP locally, taking into account CO<sub>2</sub> sources and sinks, local topography, land-surface interactions, water coverage, etc., which requires immense compute, incredible data, and difficult physics-based modeling.</p>
-<p>The obvious benefits of the more lightweight model are apparent; the problem is that it relies on observed data and historic patterns. If data are sparse or the environment is changing fast, downscaling might not be able to capture OOD (out-of-distribution) events, whereas a physics-based model is better able to. For this reason, dynamical downscaling is considered the gold standard. However, the work on dynamical downscaling is ongoing and not fully developed and in deployment; down the line this might be the dominant technique.</p>
-<p>In the upcoming chapters I am going to go through some of the most popular techniques in downscaling—covering statistical methods, dynamical methods, and modern machine learning methods inspired by super-resolution—finally outlining possible future work and directions in the downscaling landscape, which is an ever-growing field.</p>
+<section id="two-broad-routes" class="level2">
+<h2 class="anchored" data-anchor-id="two-broad-routes">Two broad routes</h2>
+<p>There are two broad routes in downscaling: <strong>statistical downscaling</strong> and <strong>dynamical downscaling</strong>.</p>
+<p>Statistical downscaling uses empirical relationships between coarse model output and high-resolution observations. These methods are usually computationally lightweight and relatively easy to apply across many models, scenarios, or locations. Their main weakness is that they rely heavily on historical relationships. If the future climate moves outside the range of the historical training data, statistical methods may struggle to generalize.</p>
+<p>Dynamical downscaling, by contrast, uses a regional numerical weather or climate model to explicitly simulate atmospheric processes at higher resolution. A regional model can include local topography, land-surface interactions, water bodies, and physical parameterizations that are not resolved by the coarser global model. This makes dynamical downscaling more physically grounded, but also much more computationally expensive and technically demanding.</p>
+<p>Because of this tradeoff, statistical and dynamical downscaling are often used for different purposes. Statistical methods are attractive when many scenarios, models, or locations must be processed efficiently. Dynamical methods are attractive when physical realism and process-level detail are especially important. Modern machine learning methods add a third family of approaches, often inspired by image super-resolution, probabilistic generation, and neural field modeling.</p>
+<p>In this chapter, I separate downscaling into two related but distinct tasks: <strong>climate downscaling</strong> and <strong>weather downscaling</strong>. Climate downscaling maps coarse climate model projections into local climate statistics and is the natural setting for methods such as Delta Change, BCSD, SDSM, LOCA, and weather generators. Weather downscaling maps a coarse forecast or reanalysis state into a high-resolution field for the same time and is the natural setting for modern paired-field machine learning methods such as U-Nets, SRCNN-style super-resolution, diffusion models, and neural operators. Dynamical downscaling can appear in either setting, depending on whether the regional model is driven by climate-model boundary conditions or by weather-forecast or reanalysis boundary conditions.</p>
 </section>
-<section id="statistical" class="level2">
-<h2 class="anchored" data-anchor-id="statistical">Statistical</h2>
-<p>In this chapter I will cover six operational and well-known statistical downscaling methods. They are not meant to be comprehensive but cover some of the main directions within statistical downscaling climate, in the following order: DC (MOS), BCSD (MOS), SDSM (PP), LOCA (MOS), WGEN (WG).</p>
-<p>There are broadly three categories of statistical downscaling:</p>
-<ul>
-<li><strong>Model Output Statistics (MOS)</strong> — bias-corrects GCMs (often via statistical matching).</li>
-<li><strong>Perfect Prognosis (PP)</strong> — uses historical relationships, typically through regression.</li>
-<li><strong>Weather Generators (WG)</strong> — outputs many synthetic fields from GCMs to model uncertainty.</li>
-</ul>
+<section id="statistical-climate-downscaling" class="level2">
+<h2 class="anchored" data-anchor-id="statistical-climate-downscaling">Statistical climate downscaling</h2>
+<p>This section focuses on several commonly used statistical climate downscaling methods: <strong>Delta Change</strong>, <strong>Bias-Corrected Spatial Disaggregation</strong>, <strong>SDSM</strong>, <strong>LOCA</strong>, and <strong>Weather Generators</strong>. The goal is not to provide a complete survey of every statistical downscaling method, but rather to cover several representative approaches that illustrate the main ideas in the field.</p>
+<p>Statistical downscaling methods are often grouped into three broad categories.</p>
+<p>The first category is <strong>Model Output Statistics</strong>, or <strong>MOS</strong>. MOS methods start from model output and transform it using observations. They are often used to correct model biases, adjust distributions, or map coarse model output onto a finer observational grid. Delta Change, BCSD, QDM, and LOCA can all be understood as MOS-style approaches.</p>
+<p>The second category is <strong>Perfect Prognosis</strong>, or <strong>PP</strong>. Perfect Prognosis methods learn historical relationships between large-scale atmospheric predictors and local predictands, often using regression or related statistical models. SDSM is a classic example.</p>
+<p>The third category is <strong>Weather Generators</strong>, or <strong>WG</strong>. Weather generators are stochastic models that produce synthetic weather sequences. In climate applications, they are often conditioned on historical observations and then adjusted according to projected changes from climate models.</p>
 <table class="caption-top table">
 <caption>Statistical downscaling methods by category (MOS, PP, WG). An <strong>X</strong> marks methods covered in this chapter.</caption>
 <thead>
@@ -3257,84 +3262,27 @@ window.Quarto = {
 </tr>
 </tbody>
 </table>
-<p>We will use <strong>Austin / Travis County, Texas</strong> as a testbed to showcase different downscalers throughout this book chapter, with data from different sources to benchmark models. Before diving into methods, let’s set up notation and nomenclature that will be used in this chapter.</p>
-<section id="notation-and-nomenclature" class="level3">
-<h3 class="anchored" data-anchor-id="notation-and-nomenclature">Notation and nomenclature</h3>
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Symbol</th>
-<th>Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><span class="math inline">T</span></td>
-<td>Temperature</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">P</span></td>
-<td>Precipitation</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">V</span></td>
-<td>Generic climatological variable (here, <span class="math inline">T</span> or <span class="math inline">P</span>)</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">x</span></td>
-<td>Spatial location</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">t</span></td>
-<td>Time</td>
-</tr>
-<tr class="even">
-<td>superscript <span class="math inline">c</span></td>
-<td>Coarse grid (input / GCM)</td>
-</tr>
-<tr class="odd">
-<td>superscript <span class="math inline">f</span></td>
-<td>Fine grid (target / observations)</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">F</span></td>
-<td>Forecasting model (e.g. CMIP6)</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\mathcal{O}</span></td>
-<td>Interpolation-based observation model (e.g. PRISM)</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">h</span></td>
-<td>Historical / calibration period</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">f</span></td>
-<td>Future / projection period</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\bar{\cdot}_{\mathrm{month}}</span></td>
-<td>Average over a calendar month</td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\uparrow</span></td>
-<td>Field interpolated from low to high resolution</td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\downarrow</span></td>
-<td>Field aggregated from high to low resolution</td>
-</tr>
-</tbody>
-</table>
-<p>To be concrete, <span class="math inline">\bar{T}^{F,c}_{h,\mathrm{month},\uparrow}</span> would read: the monthly mean forecast-model temperature interpolated to the fine grid over the historic period. That looks daunting at first, but it is not that tough once you get used to it—we will often specify which model, variable, and time slice we mean. A specific example is <span class="math inline">\bar{T}^{F,c}_{h,\mathrm{month},\uparrow}</span> for 2010–2019 from CMIP6; to fully specify a month and region we might write <span class="math inline">\bar{T}^{F,c}_{h,m=1,\uparrow}</span> for January over the Travis County domain.</p>
+<p>Throughout this section, we use <strong>Austin / Travis County, Texas</strong> as a running example. For the statistical climate downscaling methods, the coarse input is a climate model projection, such as CMIP6, and the high-resolution observational reference is a gridded product such as PRISM. The goal is not to predict the exact weather on a specific future date. Instead, the goal is to produce high-resolution future climate fields or statistics that combine the local spatial structure of observations with the projected climate-change signal from the coarse model.</p>
+</section>
+<section id="notation" class="level2">
+<h2 class="anchored" data-anchor-id="notation">Notation</h2>
+<p>Let <span class="math inline">T</span> denote temperature and <span class="math inline">P</span> denote precipitation. More generally, let <span class="math inline">Y</span> denote a generic climate variable, so that <span class="math inline">Y</span> may refer to either temperature or precipitation.</p>
+<p>We use <span class="math inline">x</span> to denote spatial location and <span class="math inline">t</span> to denote time. When it is useful to distinguish between grids, <span class="math inline">x_c</span> denotes a location on the coarse input grid and <span class="math inline">x_f</span> denotes a location on the fine target grid.</p>
+<p>We use <span class="math inline">M</span> to denote the coarse climate model output, such as CMIP6, and <span class="math inline">O</span> to denote the observational reference, such as PRISM. The historical or calibration period is denoted by <span class="math inline">H</span>, while the future or projection period is denoted by <span class="math inline">F</span>.</p>
+<p>We also use two grid operators. The operator <span class="math inline">\mathcal{A}(\cdot)</span> aggregates a high-resolution observational field to the coarse model grid. The operator <span class="math inline">\mathcal{I}(\cdot)</span> interpolates a coarse model field to the fine observational grid.</p>
+<p>For example, <span class="math inline">Y_H^{M,c}(x_c,t)</span> denotes the historical model value of variable <span class="math inline">Y</span> at coarse-grid location <span class="math inline">x_c</span> and time <span class="math inline">t</span>. Similarly, <span class="math inline">Y_H^{O,f}(x_f,t)</span> denotes the historical observed value on the fine grid. When we need the observational reference on the coarse grid, we aggregate the fine observational field to the coarse model grid.</p>
+<p>Monthly climatological averages are written with an overbar. For example, <span class="math inline">\bar{T}_{H,m}^{M,c}</span> denotes the historical monthly mean temperature from the model on the coarse grid for month <span class="math inline">m</span>. This notation may look dense at first, but most expressions become readable once the source, grid, period, and variable are understood from context.</p>
 <p><strong>Data preparation.</strong> Cached fields live under <code>data/</code>. Interactive figures are standalone Plotly HTML files under <code>figures/</code> (loaded in the chapter via iframe). Run once from the project root:</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv/Scripts/python.exe</span> scripts/prepare_data.py</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">.venv/Scripts/python.exe</span> scripts/export_plotly_figures.py</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="delta-change-dc" class="level3">
-<h3 class="anchored" data-anchor-id="delta-change-dc">Delta change (DC)</h3>
-<p>Let’s start with perhaps the simplest and one of the earliest statistical downscaling methods: <strong>delta change</strong> downscaling. The idea is simple: given high-resolution historical observations and a climate projection from a GCM, track the <em>change</em> in the GCM from historic to projection and apply that change to the high-resolution baseline.</p>
-<p>There are two flavors for the two climatological variables we use:</p>
+<section id="delta-change" class="level2">
+<h2 class="anchored" data-anchor-id="delta-change">Delta Change</h2>
+<p>The simplest statistical climate downscaling method is <strong>Delta Change</strong>. The idea is to use the climate model to estimate how the climate changes between a historical period and a future period, and then apply that change to a high-resolution observational baseline.</p>
+<p>In the most common climate downscaling setting, the model is a coarse climate projection, such as CMIP6, and the observational reference is a high-resolution gridded product such as PRISM. Delta Change does not attempt to predict the exact weather on a particular future day. Instead, it produces a future-climate version of the observed historical climatology.</p>
+<p>For temperature, the change is usually additive. First, the model-projected temperature change is computed by taking the difference between the model’s future-period monthly mean and its historical-period monthly mean. This model-derived temperature change is then interpolated to the high-resolution observational grid and added to the historical PRISM climatology.</p>
+<p>For precipitation, the change is usually multiplicative. Instead of computing a difference between future and historical precipitation, we compute a ratio between the model’s future-period precipitation and its historical-period precipitation. This ratio is then interpolated to the PRISM grid and multiplied by the historical PRISM precipitation climatology.</p>
+<p>The reason for this distinction is that temperature can naturally be treated additively: a 2°C warming has the same interpretation regardless of the baseline temperature. Precipitation, however, is nonnegative and often more naturally treated in relative terms. An additive correction could produce negative precipitation values, while a multiplicative correction preserves nonnegativity and represents wetting or drying as a proportional change.</p>
 <p><strong>Additive delta (temperature):</strong></p>
 <p><span id="eq-dc-t"><span class="math display">
 T^{f}(x) = T^{f}_{h}(x) + \left(\bar{T}^{F,c}_{f,\mathrm{month}} - \bar{T}^{F,c}_{h,\mathrm{month}}\right)
@@ -3343,65 +3291,170 @@ T^{f}(x) = T^{f}_{h}(x) + \left(\bar{T}^{F,c}_{f,\mathrm{month}} - \bar{T}^{F,c}
 <p><span id="eq-dc-p"><span class="math display">
 P^{f}(x) = P^{f}_{h}(x) \cdot \frac{\bar{P}^{F,c}_{f,\mathrm{month}}}{\bar{P}^{F,c}_{h,\mathrm{month}}}
 \tag{2}</span></span></p>
-<p>The reason we use additive deltas for temperature and multiplicative deltas for precipitation is that precipitation must be strictly positive. With an additive delta you could get nonsensical negative rainfall (e.g. observed 1 mm, <span class="math inline">\bar{P}^{F,c}_{h}=2</span> mm, <span class="math inline">\bar{P}^{F,c}_{f}=0.5</span> mm gives <span class="math inline">1 + (0.5-2) = -0.5</span> mm). The ratio gives 0.25 mm instead. For temperature, any real value is allowed, and a 2 °C warming should mean 2 °C everywhere—multiplicative scaling would depend on the baseline.</p>
-<p>In the plots below we show delta-change outputs for future projections using <strong>PRISM</strong> as the high-resolution target and <strong>CMIP6</strong> as the coarse input. We use monthly averaged PRISM and CMIP6 <span class="math inline">T</span> and <span class="math inline">P</span> over the Travis County bounding box for two periods (<strong>1991–2000</strong> and <strong>2016–2025</strong>). Each panel triplet has three maps for the selected calendar month: (1) PRISM historical monthly mean, (2) delta-change projection, (3) PRISM “truth” monthly mean for the later period. Use the <strong>month</strong> slider to explore the annual cycle.</p>
+<p>In the running example, we use PRISM as the high-resolution observational baseline and CMIP6 as the coarse climate model input. We compute monthly mean temperature and precipitation for a historical period, such as 1991–2000, and a future or pseudo-future period, such as 2016–2025. The CMIP6-projected monthly changes are then interpolated to the PRISM grid and applied to the PRISM historical climatology.</p>
+<p>The resulting maps should be interpreted as projected climate fields, not as predictions of the actual weather on specific future dates. Delta Change preserves the observed fine-scale spatial pattern from PRISM and imposes the large-scale mean climate-change signal from the model. Its main limitation is that it only adjusts the mean. It does not correct changes in variance, distributional shape, wet-day frequency, or extremes.</p>
+<p>In the plots below, each panel triplet shows three maps for the selected calendar month: (1) PRISM historical monthly mean, (2) delta-change projection, and (3) PRISM “truth” monthly mean for the later period. Use the <strong>month</strong> slider to explore the annual cycle.</p>
 <section id="temperature" class="level4">
 <h4 class="anchored" data-anchor-id="temperature">Temperature</h4>
-<p>Use the <strong>month</strong> slider to compare (1) PRISM 1991–2000, (2) delta-change projection, and (3) PRISM 2016–2025 truth.</p>
 <div class="plotly-panel">
 <iframe src="figures/dc_temperature.html" data-external="1" width="100%" height="1020" style="border:0;" title="Delta change — temperature" loading="lazy"></iframe>
 </div>
 </section>
 <section id="precipitation" class="level4">
 <h4 class="anchored" data-anchor-id="precipitation">Precipitation</h4>
-<p>Same layout, with a <strong>multiplicative</strong> CMIP6 ratio.</p>
 <div class="plotly-panel">
 <iframe src="figures/dc_precipitation.html" data-external="1" width="100%" height="1020" style="border:0;" title="Delta change — precipitation" loading="lazy"></iframe>
 </div>
 <p>When we compare the ground truth to the delta-change projection we see obvious mismatches, which is to be expected: the weather will not be the same on the same calendar day in the future, but this captures the best first-order approximation of future <em>climate</em>.</p>
 </section>
 </section>
-<section id="bias-corrected-spatial-disaggregation-bcsd" class="level3">
-<h3 class="anchored" data-anchor-id="bias-corrected-spatial-disaggregation-bcsd">Bias-corrected spatial disaggregation (BCSD)</h3>
-<p>The second downscaling model we consider is <strong>Bias-Corrected Spatial Disaggregation (BCSD)</strong>. It tries to address two failure modes of delta change:</p>
+<section id="bias-corrected-spatial-disaggregation" class="level2">
+<h2 class="anchored" data-anchor-id="bias-corrected-spatial-disaggregation">Bias-Corrected Spatial Disaggregation</h2>
+<p>The second statistical climate downscaling method is <strong>Bias-Corrected Spatial Disaggregation</strong>, or <strong>BCSD</strong>. BCSD can be understood as a more flexible extension of the Delta Change idea. Delta Change transfers the model-projected change in the monthly mean climate. BCSD instead attempts to correct and transfer changes across the full distribution.</p>
+<p>The setup is the same as in the Delta Change example. We have a coarse climate model, such as CMIP6, and a high-resolution observational reference, such as PRISM. The model provides historical and future climate simulations, while PRISM provides the observed historical local climate. The goal is to produce a PRISM-resolution future climate projection that preserves the observed fine-scale spatial structure while incorporating the model-projected climate-change signal.</p>
+<p>BCSD has two main steps. The first step is <strong>bias correction</strong>, where the coarse model distribution is adjusted using observations. The second step is <strong>spatial disaggregation</strong>, where the corrected coarse field is translated onto the fine observational grid.</p>
+<p>To perform bias correction, PRISM is first aggregated from its native high-resolution grid to the coarse CMIP6 grid. This gives us two historical distributions on the same spatial grid: the historical CMIP6 distribution and the historical PRISM distribution aggregated to CMIP6 resolution. We also have the future CMIP6 distribution from the projection period.</p>
+<p>The figures below fix the CMIP6 future realization to <strong>2025</strong>; use the <strong>month</strong> slider to explore QDM. <strong>Click the map</strong> to change grid cell. Quantile <span class="math inline">\tau</span> follows from that year’s CMIP6 monthly value.</p>
+<section id="temperature-distributions" class="level4">
+<h4 class="anchored" data-anchor-id="temperature-distributions">Temperature distributions</h4>
+<div class="plotly-panel">
+<iframe src="figures/bcsd_distribution_temperature.html" data-external="1" width="100%" height="1020" style="border:0;" title="BCSD — temperature distributions" loading="lazy"></iframe>
+</div>
+</section>
+<section id="precipitation-distributions" class="level4">
+<h4 class="anchored" data-anchor-id="precipitation-distributions">Precipitation distributions</h4>
+<div class="plotly-panel">
+<iframe src="figures/bcsd_distribution_precipitation.html" data-external="1" width="100%" height="1020" style="border:0;" title="BCSD — precipitation distributions" loading="lazy"></iframe>
+</div>
+<p>For each grid cell and calendar month, we work with three temporal distributions:</p>
 <ol type="1">
-<li>Instead of only shifting the mean, we match the <strong>entire distribution</strong> between the coarse model and observations using <strong>quantile mapping</strong>.</li>
-<li>We <strong>spatially disaggregate</strong> from the corrected coarse field to the fine grid.</li>
+<li>the <strong>observed historical high-resolution distribution</strong>, e.g. PRISM historical Novembers at that cell;</li>
+<li>the <strong>model historical distribution</strong>, e.g. CMIP6 historical Novembers;</li>
+<li>the <strong>model future distribution</strong>, e.g. CMIP6 future Novembers.</li>
 </ol>
-<p>Here we use <strong>Quantile Delta Mapping (QDM)</strong> as the bias-correction step. Suppose we have three distributions in our running example:</p>
+<p>A simple form of quantile mapping would take a model value, identify its percentile in the model’s historical distribution, and replace it with the corresponding percentile from the observed historical distribution. Ordinary quantile mapping can distort the climate-change signal: if the future CMIP6 distribution is warmer than the historical CMIP6 distribution, mapping back onto the historical observed distribution may partially erase that warming.</p>
+<p><strong>Quantile Delta Mapping (QDM)</strong> keeps quantile matching but preserves the model-projected change at each quantile. The key step is that the quantile is determined by the <strong>selected future model realization</strong>, not by the user:</p>
+<p><span class="math display">
+\tau = F_{\mathrm{CMIP,future}}\!\left(x_{\mathrm{CMIP,future}}\right)
+</span></p>
+<p>For <strong>temperature</strong>, we use additive QDM:</p>
+<p><span class="math display">
+x_{\mathrm{PRISM,projected}} =
+Q_{\mathrm{PRISM,hist}}(\tau)
++ \left[x_{\mathrm{CMIP,future}} - Q_{\mathrm{CMIP,hist}}(\tau)\right]
+</span></p>
+<p>Equivalently, if working only from quantile functions:</p>
+<p><span class="math display">
+x_{\mathrm{PRISM,projected}} =
+Q_{\mathrm{PRISM,hist}}(\tau)
++ \left[Q_{\mathrm{CMIP,future}}(\tau) - Q_{\mathrm{CMIP,hist}}(\tau)\right]
+</span></p>
+<p>For <strong>precipitation</strong>, we use a multiplicative ratio (with safeguards for zero or near-zero historical model precipitation):</p>
+<p><span class="math display">
+x_{\mathrm{PRISM,projected}} =
+Q_{\mathrm{PRISM,hist}}(\tau)
+\times \frac{x_{\mathrm{CMIP,future}}}{Q_{\mathrm{CMIP,hist}}(\tau)}
+</span></p>
+<p>or, using quantile functions only:</p>
+<p><span class="math display">
+x_{\mathrm{PRISM,projected}} =
+Q_{\mathrm{PRISM,hist}}(\tau)
+\times \frac{Q_{\mathrm{CMIP,future}}(\tau)}{Q_{\mathrm{CMIP,hist}}(\tau)}
+</span></p>
+<p>To produce a future 15-year projected field, apply this quantile-dependent correction <strong>separately to each future monthly realization</strong>, then average the corrected high-resolution fields afterward. Do <strong>not</strong> compute one 15-year mean first and assume <span class="math inline">\tau = 0.5</span>.</p>
+<p>This makes BCSD different from Delta Change. Delta Change applies one mean monthly change to the entire distribution. BCSD with QDM allows different parts of the distribution to change differently: a warm future November (<span class="math inline">\tau \approx 0.85</span>) and a cool future November (<span class="math inline">\tau \approx 0.20</span>) receive different bias-corrected PRISM values even for the same calendar month.</p>
+<p>After QDM, the bias-corrected future field is still on the coarse CMIP6 grid. The second step of BCSD is therefore spatial disaggregation. This step uses the high-resolution PRISM climatology to reintroduce local spatial structure.</p>
+<p>For temperature, we first compute a coarse anomaly by comparing the QDM-corrected future temperature to the historical PRISM monthly climatology aggregated to the CMIP6 grid. This anomaly tells us how much warmer or colder the corrected future value is relative to the observed historical climate at that coarse location and month. The anomaly is then interpolated from the coarse CMIP6 grid to the fine PRISM grid. Finally, the interpolated anomaly is added to the high-resolution historical PRISM climatology.</p>
+<p>For precipitation, the same idea is applied with ratios rather than additive anomalies. We compare the QDM-corrected future precipitation to the historical PRISM monthly precipitation climatology aggregated to the CMIP6 grid. This gives a coarse precipitation ratio, which is then interpolated to the PRISM grid and multiplied by the high-resolution historical PRISM climatology.</p>
+<p>The intuition is that CMIP6 supplies the large-scale projected change, while PRISM supplies the observed local spatial pattern. QDM corrects the distribution at the coarse scale, and spatial disaggregation transfers the corrected anomaly or ratio to the fine grid.</p>
+<p>Thus, BCSD can be summarized as:</p>
 <ol type="1">
-<li>Observed historical distribution from PRISM aggregated to the coarse input grid.</li>
-<li>Model historical distribution (ERA5 standing in for a GCM).</li>
-<li>Low-resolution model <em>forecast</em> distribution.</li>
+<li>aggregate PRISM to the CMIP6 grid;</li>
+<li>use QDM to bias-correct the future CMIP6 distribution using historical PRISM as the observational reference;</li>
+<li>compute coarse anomalies or ratios relative to historical PRISM climatology;</li>
+<li>interpolate those anomalies or ratios to the PRISM grid;</li>
+<li>apply them to the high-resolution PRISM historical climatology.</li>
 </ol>
-<p>Below, the 1991–2001 distributions of ERA5 and PRISM would be shown (interactive notebook cells for BCSD are forthcoming).</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Plot 3 and Plot 4 (forthcoming)
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Distribution comparisons for temperature and precipitation (ERA5 vs PRISM, historical and future) will be embedded from the BCSD notebook cells when those are added to <code>DS_notebook.ipynb</code>.</p>
-</div>
-</div>
-<p>A regular <strong>Quantile Mapping (QM)</strong> maps a forecast value through the historical model CDF to the same quantile on the observed CDF: e.g. 80 °F on the ERA5 forecast grid maps to the PRISM value at the matching quantile of the historical ERA5 distribution. Repeat for every coarse cell.</p>
-<p>QM alone does not preserve <strong>climate change</strong> in the model (e.g. a 20–30 year warming trend). <strong>QDM</strong> fixes this like delta change, but in quantile space. For temperature (additive):</p>
-<p><span class="math display">T^{f}_{\mathrm{corrected}}(x) = F^{-1}_{\mathcal{O},h}\!\left(\tau\right) + \left(F^{-1}_{F,f}\!\left(\tau\right) - F^{-1}_{F,h}\!\left(\tau\right)\right)</span></p>
-<p>where <span class="math inline">\tau</span> is the quantile of the forecast in the future model distribution. For precipitation we use a multiplicative delta on quantiles, analogous to <a href="#eq-dc-p" class="quarto-xref">Equation 2</a>.</p>
-<p>The bias-corrected field is then expressed as an <strong>anomaly</strong> relative to the coarse observed monthly mean (additive for <span class="math inline">T</span>, multiplicative for <span class="math inline">P</span>), interpolated to the fine grid, and added to the fine-scale PRISM climatology for the target day.</p>
+<p>The final output is a PRISM-resolution future climate projection. Like Delta Change, BCSD should not be interpreted as predicting the exact weather on a specific future date. Its purpose is to produce high-resolution climate fields whose distributions and projected changes are more consistent with both the observational reference and the coarse climate model projection.</p>
+<p>Compared with Delta Change, BCSD is more flexible because it can account for changes across the full distribution rather than only changes in the mean. This makes it especially useful for variables and applications where extremes, skewness, wet-day frequency, or changes in variability matter.</p>
 </section>
 </section>
-<section id="dynamical" class="level2">
-<h2 class="anchored" data-anchor-id="dynamical">Dynamical</h2>
-<p><em>(Section to be expanded: regional climate models / nested NWP as dynamical downscaling.)</em></p>
+<section id="sdsm" class="level2">
+<h2 class="anchored" data-anchor-id="sdsm">SDSM</h2>
+<p>The next model family we consider is <strong>SDSM</strong> (Statistical DownScaling Model), which links low-resolution large-scale atmospheric predictors to high-resolution regional variables. Whereas BCSD bias-corrects a coarse distribution and spatially disaggregates it, SDSM learns a statistical relationship between predictors and predictands. In many ways this is similar to a supervised learning problem: choose local targets, choose large-scale predictors, fit a model on historical data, evaluate diagnostics, and apply the fitted model to future predictors.</p>
+<section id="statistical-downscaling-model-a-local-regression-example" class="level3">
+<h3 class="anchored" data-anchor-id="statistical-downscaling-model-a-local-regression-example">Statistical DownScaling Model: a local regression example</h3>
+<p>Unlike delta change and BCSD, which adjust model output distributions directly, SDSM treats downscaling as a supervised learning problem. The local PRISM series is the target variable, while the coarse CMIP6 series supplies the predictor. For the Austin example, CMIP6 covers the Travis County box with essentially one coarse grid cell, while PRISM resolves the same region on a much finer grid. This makes the example deliberately simple: the GCM provides one large-scale climate trajectory, and PRISM teaches the model how that trajectory has historically appeared at particular local cells.</p>
+<p>Building an SDSM model typically involves four steps:</p>
+<ol type="1">
+<li>choose local observation targets, for example monthly precipitation or temperature at a grid cell or station;</li>
+<li>choose large-scale predictors, for example CMIP6 temperature and precipitation;</li>
+<li>calibrate a statistical relationship, for example linear regression with seasonal terms;</li>
+<li>apply the fitted model to future GCM predictors.</li>
+</ol>
+<p>For temperature, we aggregate daily PRISM values to monthly means and pair each local PRISM value with the corresponding monthly CMIP6 temperature. We also include a sine/cosine embedding of calendar month, because January and December should be close in the seasonal cycle rather than treated as numerically far apart. The fitted model is then applied to future CMIP6 months to produce a local PRISM-scale temperature estimate. The future output is a PRISM-scale projection driven by future CMIP6, not observed future PRISM.</p>
+<p>The diagnostic panels are part of the lesson. The observed-versus-fitted plot asks whether the historical regression explains the local PRISM series. The QQ plot asks whether the Gaussian noise assumption is plausible. The residuals-versus-fitted plot asks whether the model leaves systematic structure behind. These checks matter because the future projection is only as credible as the historical relationship used to produce it.</p>
+<p>For precipitation, we use the same structure but fit the model on log-transformed precipitation, <span class="math inline">\log(1+P)</span>, because monthly precipitation is nonnegative and skewed. This is not a complete stochastic precipitation model, but it gives students a concrete first example of how modeling choices follow from the physical and statistical character of the variable. Residual diagnostics for precipitation are interpreted in log1p space, while fitted precipitation values are back-transformed for plotting.</p>
 </section>
-<section id="ml-techniques" class="level2">
-<h2 class="anchored" data-anchor-id="ml-techniques">ML techniques</h2>
-<p><em>(Section to be expanded: deterministic, probabilistic, and physics-informed machine learning downscaling.)</em></p>
+<section id="model-equations" class="level3">
+<h3 class="anchored" data-anchor-id="model-equations">Model equations</h3>
+<p>For temperature at a selected fine-grid cell <span class="math inline">x_f</span> and time <span class="math inline">t</span>, with month index <span class="math inline">m_t</span>:</p>
+<p><span class="math display">
+T^{\mathrm{PRISM}}_{f,t}
+=
+\beta_0
++ \beta_1 T^{\mathrm{CMIP6}}_{c,t}
++ \beta_2 \sin\left(\frac{2\pi m_t}{12}\right)
++ \beta_3 \cos\left(\frac{2\pi m_t}{12}\right)
++ \epsilon_t,
+\qquad
+\epsilon_t \sim \mathcal{N}(0,\sigma^2).
+</span></p>
+<p>Here <span class="math inline">T^{\mathrm{PRISM}}_{f,t}</span> is the local fine-grid PRISM monthly temperature, <span class="math inline">T^{\mathrm{CMIP6}}_{c,t}</span> is the coarse CMIP6 monthly temperature over the Travis County box, and <span class="math inline">m_t</span> is the calendar month.</p>
+<p>In matrix form, with design matrix <span class="math inline">X</span> built from the intercept, CMIP6 predictor, and seasonal sine/cosine terms:</p>
+<p><span class="math display">
+\mathbf{y} = X\boldsymbol{\beta} + \boldsymbol{\epsilon},
+\qquad
+\boldsymbol{\epsilon} \sim \mathcal{N}(0,\sigma^2 I).
+</span></p>
+<p>Under independent Gaussian errors, the ordinary least-squares estimator is</p>
+<p><span class="math display">
+\hat{\boldsymbol{\beta}} = (X^\top X)^{-1}X^\top \mathbf{y},
+</span></p>
+<p>which is also the maximum-likelihood estimator for the regression coefficients.</p>
+<p>For precipitation we use the same seasonal structure in log1p space:</p>
+<p><span class="math display">
+\log(1 + P^{\mathrm{PRISM}}_{f,t})
+=
+\beta_0
++ \beta_1 \log(1 + P^{\mathrm{CMIP6}}_{c,t})
++ \beta_2 \sin\left(\frac{2\pi m_t}{12}\right)
++ \beta_3 \cos\left(\frac{2\pi m_t}{12}\right)
++ \epsilon_t.
+</span></p>
+<p>Fitted precipitation values are mapped back to millimetres per day with <span class="math inline">\exp(\cdot)-1</span> for the observed-versus-fitted and projection panels, while QQ and residual plots remain in log1p space.</p>
+</section>
+<section id="interactive-figures" class="level3">
+<h3 class="anchored" data-anchor-id="interactive-figures">Interactive figures</h3>
+<p>The dropdown menu changes the selected PRISM grid cell. Each choice uses the same coarse CMIP6 predictor series but a different local PRISM calibration, so the diagnostics and future projection update together.</p>
+<section id="temperature-1" class="level4">
+<h4 class="anchored" data-anchor-id="temperature-1">Temperature</h4>
+<div class="plotly-panel">
+<iframe src="figures/sdsm_regression_temperature.html" data-external="1" width="100%" height="1020" style="border:0;" title="SDSM — temperature regression" loading="lazy"></iframe>
+</div>
+</section>
+<section id="precipitation-1" class="level4">
+<h4 class="anchored" data-anchor-id="precipitation-1">Precipitation</h4>
+<div class="plotly-panel">
+<iframe src="figures/sdsm_regression_precipitation.html" data-external="1" width="100%" height="1020" style="border:0;" title="SDSM — precipitation regression" loading="lazy"></iframe>
+</div>
+<p>The key point is that the spatial detail does not come from CMIP6 directly. In this example, CMIP6 supplies one coarse monthly climate signal, while the local PRISM record supplies the cell-specific calibration. Fitting the model at different PRISM cells gives different local mappings from the same coarse trajectory. This is why the dropdown is useful pedagogically: students can see that the same GCM predictor can imply different local outcomes once the historical local relationship changes.</p>
+</section>
+</section>
+</section>
+<section id="dynamical-and-machine-learning-methods" class="level2">
+<h2 class="anchored" data-anchor-id="dynamical-and-machine-learning-methods">Dynamical and machine learning methods</h2>
+<p>Whereas BCSD focuses on bias correction and SDSM focuses on statistical relationships, super-resolution-style machine learning methods focus on spatial realism, and dynamical models focus on physical or dynamical coherence. These routes are complementary. A practical downscaling workflow might proceed in stages: learn statistical relationships, bias-correct them, make fields spatially coherent, and finally enforce physical consistency. Statistical methods such as delta change, BCSD, and SDSM remain attractive when many models, scenarios, or locations must be processed efficiently. Dynamical downscaling remains the gold standard when process-level detail matters, though it is computationally demanding. Modern machine learning approaches inspired by image super-resolution, probabilistic generation, and neural operators offer a third family of tools, especially for weather downscaling where paired coarse and fine fields are available at the same time.</p>
 </section>
 
 </main>
