@@ -250,10 +250,21 @@ def download_cmip6_monthly(
     return monthly
 
 
+def _fix_legacy_cmip6_p(ds: xr.Dataset) -> xr.Dataset:
+    """Correct NetCDF cached before the pr kg m-2 s-1 conversion fix (was 1000x too large)."""
+    if "P" not in ds:
+        return ds
+    if float(ds["P"].max()) > 200.0:
+        out = ds.copy()
+        out["P"] = ds["P"] / 1000.0
+        return out
+    return ds
+
+
 def load_cmip6(period: str) -> xr.Dataset:
     """Load cached monthly CMIP6. ``period`` is ``"hist"`` or ``"fut"``."""
     path = {"hist": C.CMIP6_HIST_NC, "fut": C.CMIP6_FUT_NC}[period]
-    return _open_cached(path, "CMIP6")
+    return _fix_legacy_cmip6_p(_open_cached(path, "CMIP6"))
 
 
 # ---------------------------------------------------------------------------

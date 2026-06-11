@@ -20,6 +20,10 @@ FIGURES.mkdir(exist_ok=True)
 # Standalone Plotly HTML (month slider) for the Quarto chapter.
 DC_TEMPERATURE_HTML = FIGURES / "dc_temperature.html"
 DC_PRECIPITATION_HTML = FIGURES / "dc_precipitation.html"
+BCSD_DIST_TEMPERATURE_HTML = FIGURES / "bcsd_distribution_temperature.html"
+BCSD_DIST_PRECIPITATION_HTML = FIGURES / "bcsd_distribution_precipitation.html"
+SDSM_REGRESSION_TEMPERATURE_HTML = FIGURES / "sdsm_regression_temperature.html"
+SDSM_REGRESSION_PRECIPITATION_HTML = FIGURES / "sdsm_regression_precipitation.html"
 
 # Cached, analysis-ready files produced by scripts/prepare_data.py.
 # The notebook only ever reads these, so it stays fast and offline.
@@ -90,5 +94,5 @@ CMIP6_EXPERIMENT = {"hist": CMIP6_HIST_EXPERIMENT, "fut": CMIP6_FUT_EXPERIMENT}
 # --- Physical constants ----------------------------------------------------
 KELVIN = 273.15      # ERA5 2m_temperature is in Kelvin
 M_TO_MM = 1000.0     # ERA5 total_precipitation is in metres (per hour)
-# CMIP6 pr (kg m-2 s-1) -> mm/day for comparison with PRISM daily means.
-KG_M2_S_TO_MM_DAY = 86400.0 * M_TO_MM
+# CMIP6 pr (kg m-2 s-1 == mm s-1) -> mm/day (86400 s per day).
+KG_M2_S_TO_MM_DAY = 86400.0

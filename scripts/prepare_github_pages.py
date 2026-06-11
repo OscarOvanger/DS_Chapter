@@ -23,7 +23,14 @@ QUARTO = ROOT / ".tools" / "quarto" / "bin" / "quarto.exe"
 QMD = ROOT / "Downscaling_BS.qmd"
 CHAPTER_HTML = ROOT / "Downscaling_BS.html"
 VENV_PY = ROOT / ".venv" / "Scripts" / "python.exe"
-PLOT_FILES = ("dc_temperature.html", "dc_precipitation.html")
+PLOT_FILES = (
+    "dc_temperature.html",
+    "dc_precipitation.html",
+    "bcsd_distribution_temperature.html",
+    "bcsd_distribution_precipitation.html",
+    "sdsm_regression_temperature.html",
+    "sdsm_regression_precipitation.html",
+)
 
 
 def _run_export() -> None:
@@ -70,14 +77,18 @@ def main() -> None:
     html = CHAPTER_HTML.read_text(encoding="utf-8", errors="replace")
     _validate_chapter(html)
 
-    if DOCS.exists():
-        shutil.rmtree(DOCS)
+    publish_md = DOCS / "PUBLISH.md"
+    publish_text = publish_md.read_text(encoding="utf-8") if publish_md.exists() else None
+    if FIGURES.exists():
+        shutil.rmtree(FIGURES)
     FIGURES.mkdir(parents=True)
 
     shutil.copy2(CHAPTER_HTML, DOCS / "index.html")
     for name in PLOT_FILES:
         shutil.copy2(C.FIGURES / name, FIGURES / name)
     (DOCS / ".nojekyll").touch()
+    if publish_text is not None:
+        publish_md.write_text(publish_text, encoding="utf-8")
 
     print(f"\nGitHub Pages site ready in: {DOCS}", flush=True)
     print("  docs/index.html", flush=True)

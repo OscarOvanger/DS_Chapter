@@ -18,11 +18,24 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.plotly_panels import export_all
+from src import data_io as io
+from src.plotly_bcsd import build_distribution_cache, export_distribution_html
+from src.plotly_panels import build_monthly_cache, export_delta_monthly_html
+from src.plotly_sdsm_regression import build_sdsm_cache, export_sdsm_regression_html
 
 
 def main() -> None:
-    paths = export_all()
+    data = io.load_delta_change_data(progress=True)
+    dc_cache = build_monthly_cache(data)
+    bcsd_cache = build_distribution_cache(data)
+    paths: list = []
+    for var in ("T", "P"):
+        s, f = export_delta_monthly_html(var, data=data, cache=dc_cache)
+        paths.extend([s, f])
+        paths.append(export_distribution_html(var, data=data, cache=bcsd_cache))
+    sdsm_cache = build_sdsm_cache(data)
+    for var in ("T", "P"):
+        paths.append(export_sdsm_regression_html(var, data=data, cache=sdsm_cache))
     for p in paths:
         print(f"  wrote {p.name} ({p.stat().st_size // 1024} KB)")
 
